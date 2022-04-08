@@ -15,8 +15,8 @@ let urlFinish = process.env.urlFinish;
     try {
 
         let browser = await puppeteer.launch({
-            headless: false,
-            slowMo: 100,
+            headless: true,
+            slowMo: 70,
             devtools: true,
         })
 
@@ -27,67 +27,75 @@ let urlFinish = process.env.urlFinish;
         })
 
         let data = {}
+        let langArr = ["us", "nl", "dk", "de", "fr", "es", "pt", "cz", "fi", "gr", "it", "pl", "ro"]
 
-        while (occupationCounter <= 1000) {
+        while (occupationCounter <= 500) {
 
             let occupArr = []
             let occupTitle = ''
 
-            for (let key in langs.data) {
+            for (let i = 0; i < langArr.length; i++) {
 
-                let occupationObj = {}
+                try {
+                    let occupationObj = {}
 
-                await page.goto(`${urlStart}${langs.data[key]}${urlFinish}${occupationCounter}`)
-                await page.waitForSelector('#copyright')
+                    await page.goto(`${urlStart}${langArr[i]}${urlFinish}${occupationCounter}`)
+                    await page.waitForSelector('#copyright')
 
-                let html = await page.evaluate(async () => {
-                    try {
-                        let occupation = document.querySelector('.text-primary').innerHTML
-                        let neededCompetencyHeader = document.querySelector('.heading h4').innerHTML
-                        let requiredSkillsHeader = document.querySelector('#RequiredSkills .heading h4').innerHTML
-                        let neededCompetenciesArr = document.querySelectorAll('#NCContent .panel-list-group-item')
-                        let requiredSkillsArr = document.querySelectorAll('#RequiredSkills .panel-list-group-item')
+                    let html = await page.evaluate(async () => {
+                        try {
+                            let occupation = document.querySelector('.text-primary').innerHTML
+                            let neededCompetencyHeader = document.querySelector('.heading h4').innerHTML
+                            let requiredSkillsHeader = document.querySelector('#RequiredSkills .heading h4').innerHTML
+                            let neededCompetenciesArr = document.querySelectorAll('#NCContent .panel-list-group-item')
+                            let requiredSkillsArr = document.querySelectorAll('#RequiredSkills .panel-list-group-item')
 
-                        console.log(occupation)
-                        console.log(neededCompetencyHeader)
-                        console.log(neededCompetenciesArr)
-                        console.log(requiredSkillsArr)
+                            console.log(occupation)
+                            console.log(neededCompetencyHeader)
+                            console.log(neededCompetenciesArr)
+                            console.log(requiredSkillsArr)
 
-                        let neededCompetencies = []
-                        let requiredSkills = []
+                            let neededCompetencies = []
+                            let requiredSkills = []
 
-                        for (let elem of neededCompetenciesArr) {
-                            neededCompetencies.push(elem.innerHTML.trim())
+                            for (let elem of neededCompetenciesArr) {
+                                neededCompetencies.push(elem.innerHTML.trim())
+                            }
+
+                            for (let elem of requiredSkillsArr) {
+                                requiredSkills.push(elem.innerText.trim())
+                            }
+
+                            let obj = {
+                                occupationTitle: occupation,
+                                neededCompetencyHeader: neededCompetencyHeader,
+                                neededCompetencies: neededCompetencies,
+                                requiredSkillsHeader: requiredSkillsHeader,
+                                requiredSkills: requiredSkills,
+                            }
+
+                            return obj
                         }
-
-                        for (let elem of requiredSkillsArr) {
-                            requiredSkills.push(elem.innerText.trim())
+                        catch (e) {
+                            console.log(e)
                         }
+                    })
 
-                        let obj = {
-                            occupationTitle: occupation,
-                            neededCompetencyHeader: neededCompetencyHeader,
-                            neededCompetencies: neededCompetencies,
-                            requiredSkillsHeader: requiredSkillsHeader,
-                            requiredSkills: requiredSkills,
-                        }
+                    occupationObj[langArr[i]] = html
 
-                        return obj
+                    if (langArr[i] === 'us') {
+                        occupTitle = occupationObj[langArr[i]].occupationTitle
                     }
-                    catch (e) {
-                        console.log(e)
-                    }
-                })
 
-                occupationObj[langs.data[key]] = html
+                    occupArr.push(occupationObj)
 
-                if (langs.data[key] == 'en') {
-                    occupTitle = occupationObj[langs.data[key]].occupationTitle
+                    console.log(occupTitle + ' ID =' + occupationCounter + ', ' + langArr[i])
                 }
 
-                occupArr.push(occupationObj)
-
-                console.log(occupTitle + ' ID =' + occupationCounter + ', ' + langs.data[key])
+                catch (e) {
+                    console.log(e)
+                    i = langArr.length - 1
+                }
 
             }
 
