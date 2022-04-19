@@ -10,7 +10,7 @@ let urlStart = process.env.urlStart;
 let urlFinish = process.env.urlFinish;
 
 (async () => {
-    let occupationCounter = 1
+    let occupationCounter = 2501
 
     try {
 
@@ -29,7 +29,7 @@ let urlFinish = process.env.urlFinish;
         let data = {}
         let langArr = ["us", "nl", "dk", "de", "fr", "es", "pt", "cz", "fi", "gr", "it", "pl", "ro"]
 
-        while (occupationCounter <= 500) {
+        while (occupationCounter <= 3000) {
 
             let occupArr = []
             let occupTitle = ''
@@ -105,10 +105,14 @@ let urlFinish = process.env.urlFinish;
 
 
 
-        await fs.writeFile('occup-compet-1-1000.json', JSON.stringify({'data': data}), err => {
+        await fs.writeFile('occup-compet-2501-3000.json', JSON.stringify({'data': data}), err => {
             if (err) throw err
             console.log('file is saved')
-            console.log( data.length + ' elements')
+            let dataLength = 0
+            for (let key in data) {
+                dataLength++
+            }
+            console.log( dataLength + ' elements')
         })
         // await browser.close()
 
